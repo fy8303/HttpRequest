@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">HttpRequest</string>
+    <string name="btn_get">Get Url</string>
+    <string name="btn_post">Post Url</string>
+</resources>
