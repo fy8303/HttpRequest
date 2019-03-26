@@ -16,7 +16,7 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private TextView tv_response;
-    private String origin = "https://200.1.6.11/";
+    private String origin = "https://10.175.34.166/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     connection.setConnectTimeout(8000);
                     connection.setReadTimeout(8000);
                     DataOutputStream out = new DataOutputStream(connection.getOutputStream());
-                    out.writeBytes("username=%22user1%22&password=%22a%22");
+                    out.writeBytes("username=%22test%22&password=%22a%22");
                     InputStream in = connection.getInputStream();
                     reader = new BufferedReader(new InputStreamReader(in));
                     StringBuilder response = new StringBuilder();
@@ -164,8 +164,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     builder.sslSocketFactory(sslContext.getSocketFactory());
                     builder.hostnameVerifier(new TrustAllCerts.TrustAllHostnameVerifier());
                     OkHttpClient client = new OkHttpClient();
-                    FormBody formBody = new FormBody.Builder()
-                            .add("username", "\"user1\"")
+                    RequestBody formBody = new FormBody.Builder()
+                            .add("username", "\"test\"")
                             .add("password", "\"a\"")
                             .build();
                     Request request = new Request.Builder()
