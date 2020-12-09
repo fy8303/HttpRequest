@@ -14,9 +14,14 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private TextView tv_response;
-    private String origin = "https://10.175.34.166/";
+    private String origin = "https://192.168.219.100/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,17 +43,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_get:
-                sendGetUrl();
-                //sendGetUrlWithOkHttp();
+                //sendGetUrl();
+                sendGetUrlWithOkHttp();
                 break;
             case R.id.btn_post:
-                sendPostUrl();
-                //sendPostUrlWithOkHttp();
+                //sendPostUrl();
+                sendPostUrlWithOkHttp();
                 break;
         }
     }
 
-    //HttpURLConnection方式请求示例
+    //HttpURLConnection方式get请求示例
     private void sendGetUrl() {
         new Thread(new Runnable() {
             @Override
@@ -88,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }).start();
     }
 
+    //HttpURLConnection方式post请求示例
     private void sendPostUrl() {
         new Thread(new Runnable() {
             @Override
@@ -102,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     connection.setConnectTimeout(8000);
                     connection.setReadTimeout(8000);
                     DataOutputStream out = new DataOutputStream(connection.getOutputStream());
-                    out.writeBytes("username=%22test%22&password=%22a%22");
+                    out.writeBytes("username=%22a%22&password=%22a%22");
                     InputStream in = connection.getInputStream();
                     reader = new BufferedReader(new InputStreamReader(in));
                     StringBuilder response = new StringBuilder();
@@ -129,22 +135,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }).start();
     }
 
-    //OkHttp方式请求示例
-    /*private void sendGetUrlWithOkHttp() {
+    //OkHttp方式get请求示例
+    private void sendGetUrlWithOkHttp() {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     OkHttpClient.Builder builder = new OkHttpClient.Builder();
-                    builder.sslSocketFactory(TrustAllCerts.createSSLSocketFactory());
+                    builder.sslSocketFactory(TrustAllCerts.createSSLSocketFactory(), TrustAllCerts.createTrustManager());
                     builder.hostnameVerifier(new TrustAllCerts.TrustAllHostnameVerifier());
                     OkHttpClient client = builder.build();
-                    Request request = new Request.Builder()
-                            .url(origin)
-                            .build();
-                    Response response = client.newCall(request).execute();
-                    String responseData = response.body().string();
-                    showResponse(responseData);
+
+                    Request.Builder request = new Request.Builder();
+                    request.url(origin);
+                    Response response = client.newCall(request.build()).execute();
+
+                    if (response.isSuccessful()) {
+                        showResponse(response.body().string());
+                    } else {
+                        throw new IOException("Unexpected code " + response);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -152,42 +162,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }).start();
     }
 
+    //OkHttp方式post请求示例
     private void sendPostUrlWithOkHttp() {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                SSLContext sslContext;
                 try {
-                    sslContext = SSLContext.getInstance("TLS");
-                    sslContext.init(null, new TrustManager[]{new TrustAllCerts()}, new java.security.SecureRandom());
                     OkHttpClient.Builder builder = new OkHttpClient.Builder();
-                    builder.sslSocketFactory(sslContext.getSocketFactory());
+                    builder.sslSocketFactory(TrustAllCerts.createSSLSocketFactory(), TrustAllCerts.createTrustManager());
                     builder.hostnameVerifier(new TrustAllCerts.TrustAllHostnameVerifier());
-                    OkHttpClient client = new OkHttpClient();
-                    RequestBody formBody = new FormBody.Builder()
-                            .add("username", "\"test\"")
-                            .add("password", "\"a\"")
-                            .build();
-                    Request request = new Request.Builder()
-                            .url(origin + "e/vpn/VPNUser.login.json")
-                            .post(formBody)
-                            .build();
-                    Response response = client.newCall(request).execute();
+                    OkHttpClient client = builder.build();
+
+                    FormBody.Builder params = new FormBody.Builder();
+                    params.add("username", "\"a\"");
+                    params.add("password", "\"a\"");
+
+                    Request.Builder request = new Request.Builder();
+                    request.url(origin + "e/vpn/VPNUser.login.json");
+                    request.post(params.build());
+                    Response response = client.newCall(request.build()).execute();
+
                     if (response.isSuccessful()) {
-                        showResponse(response.body().toString());
+                        showResponse(response.body().string());
                     } else {
                         throw new IOException("Unexpected code " + response);
                     }
-                } catch (NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                } catch (KeyManagementException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }).start();
-    }*/
+    }
 
     private void showResponse(final String response) {
         runOnUiThread(new Runnable() {
